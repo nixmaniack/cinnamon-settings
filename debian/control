@@ -1,0 +1,12 @@
+Source: cinnamon-settings
+Section: admin
+Priority: optional
+Maintainer: Clement Lefebvre <root@linuxmint.com>
+Build-Depends: debhelper (>= 5)
+Standards-Version: 3.7.2
+
+Package: cinnamon-settings
+Architecture: all
+Depends: python (>= 2.4), python (<< 3), python-gtk2
+Description: Cinnamon configuration tool
+ Configures some aspects of the Cinnamon desktop. 

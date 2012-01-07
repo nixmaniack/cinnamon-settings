@@ -1,0 +1,5 @@
+#!/bin/bash
+
+sudo rm -rf /usr/lib/cinnamon-settings
+sudo cp -R usr /
+cinnamon-settings
