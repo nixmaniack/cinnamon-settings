@@ -8,6 +8,7 @@ try:
     import gettext
     from gi.repository import Gio, Gtk
     from gi.repository import GdkPixbuf 
+    import gconf
 except Exception, detail:
     print detail
     sys.exit(1)
@@ -41,6 +42,23 @@ class SidePage:
         for widget in self.widgets:
             self.content_box.add(widget)
             self.content_box.show_all()
+
+class GConfCheckButton(Gtk.CheckButton):    
+    def __init__(self, label, key):        
+        self.key = key
+        super(GConfCheckButton, self).__init__(label)       
+        self.settings = gconf.client_get_default()
+        self.set_active(self.settings.get_bool(self.key))
+        self.settings.notify_add(self.key, self.on_my_setting_changed)
+        self.connect('toggled', self.on_my_value_changed)            
+    
+    def on_my_setting_changed(self, client, cnxn_id, entry):
+        value = entry.value.get_bool()
+        self.set_active(value)
+        
+    def on_my_value_changed(self, widget):
+        self.settings.set_bool(self.key, self.get_active())
+
             
 class GSettingsCheckButton(Gtk.CheckButton):    
     def __init__(self, label, schema, key):        
@@ -104,6 +122,7 @@ class MainWindow:
                                
         sidePage = SidePage(_("Terminal"), "terminal", self.content_box)
         self.sidePages.append(sidePage);
+        sidePage.add_widget(GConfCheckButton(_("Show fortune cookies"), "/desktop/linuxmint/terminal/show_fortunes"))
                        
         sidePage = SidePage(_("Panel"), "preferences-desktop", self.content_box)
         self.sidePages.append(sidePage);
