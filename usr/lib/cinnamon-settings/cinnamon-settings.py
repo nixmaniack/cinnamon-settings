@@ -40,7 +40,8 @@ class SidePage:
         
         # Add our own widgets
         for widget in self.widgets:
-            self.content_box.add(widget)
+            self.content_box.pack_start(widget, False, False, 2)
+            
             self.content_box.show_all()
 
 class GConfCheckButton(Gtk.CheckButton):    
