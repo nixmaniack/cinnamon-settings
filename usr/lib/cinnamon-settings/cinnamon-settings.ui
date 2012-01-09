@@ -8,8 +8,8 @@
     <property name="border_width">6</property>
     <property name="title" translatable="yes">mintDesktop</property>
     <property name="window_position">center</property>
-    <property name="default_width">500</property>
-    <property name="default_height">350</property>
+    <property name="default_width">640</property>
+    <property name="default_height">480</property>
     <property name="icon_name">user-desktop</property>
     <child>
       <object class="GtkBox" id="box1">

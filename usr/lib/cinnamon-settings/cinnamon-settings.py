@@ -65,20 +65,25 @@ class ThemeViewSidePage (SidePage):
         iconView = Gtk.IconView();        
         model = Gtk.ListStore(str, GdkPixbuf.Pixbuf)
                  
-        img = Gtk.IconTheme.get_default().load_icon("preferences-desktop", 36, 0)
+        img = img = GdkPixbuf.Pixbuf.new_from_file_at_size( "/usr/share/cinnamon/theme/thumbnail.png", 64, 64 )
         model.append(["Cinnamon", img])
                                                                     
         themes = os.listdir('/usr/share/themes')
+        themes.sort()
         for theme in themes:
             if os.path.exists("/usr/share/themes/%s/cinnamon/cinnamon.css" % theme):
-                img = Gtk.IconTheme.get_default().load_icon("preferences-desktop", 36, 0)
+                if os.path.exists("/usr/share/themes/%s/cinnamon/thumbnail.png" % theme):
+                    img = GdkPixbuf.Pixbuf.new_from_file_at_size( "/usr/share/themes/%s/cinnamon/thumbnail.png" % theme, 64, 64 )
+                else:
+                    img = img = GdkPixbuf.Pixbuf.new_from_file_at_size( "/usr/share/cinnamon/theme/thumbnail-generic.png", 64, 64 )
                 model.append([theme, img])
                 print theme                
                 
         themes = os.listdir('%s/.themes' % home)
+        themes.sort()
         for theme in themes:
             if os.path.exists("/usr/share/themes/%s/cinnamon/cinnamon.css" % theme):
-                img = Gtk.IconTheme.get_default().load_icon("preferences-desktop", 36, 0)
+                img = Gtk.IconTheme.get_default().load_icon("preferences-desktop", 64, 0)
                 model.append([theme, img])
                 print theme                
                                                 
@@ -177,9 +182,6 @@ class MainWindow:
 
         self.sidePages = []
                                
-        sidePage = SidePage(_("Terminal"), "terminal", self.content_box)
-        self.sidePages.append(sidePage);
-        sidePage.add_widget(GConfCheckButton(_("Show fortune cookies"), "/desktop/linuxmint/terminal/show_fortunes"))
                        
         sidePage = SidePage(_("Panel"), "preferences-desktop", self.content_box)
         self.sidePages.append(sidePage);
@@ -191,8 +193,13 @@ class MainWindow:
         sidePage.add_widget(GSettingsCheckButton(_("Overview icon visible"), "org.cinnamon", "overview-corner-visible")) 
         sidePage.add_widget(GSettingsCheckButton(_("Overview hot corner enabled"), "org.cinnamon", "overview-corner-hover")) 
         
-        sidePage = ThemeViewSidePage(_("Theme"), "preferences-desktop", self.content_box)
+        sidePage = ThemeViewSidePage(_("Theme"), "preferences-desktop-theme", self.content_box)
         self.sidePages.append(sidePage);
+        
+        sidePage = SidePage(_("Terminal"), "terminal", self.content_box)
+        self.sidePages.append(sidePage);
+        sidePage.add_widget(GConfCheckButton(_("Show fortune cookies"), "/desktop/linuxmint/terminal/show_fortunes"))
+        
                                 
         # create the backing store for the side nav-view.                    
         theme = Gtk.IconTheme.get_default()
