@@ -49,7 +49,7 @@ for directory in os.listdir("/usr/share/cinnamon/locale"):
 			pass
 
 desktopFile.writelines("""Exec=cinnamon-settings
-Icon=user-desktop
+Icon=preferences-system
 Terminal=false
 Type=Application
 Encoding=UTF-8
