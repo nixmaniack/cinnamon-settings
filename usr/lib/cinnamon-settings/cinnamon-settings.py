@@ -176,8 +176,17 @@ class ExtensionViewSidePage (SidePage):
         extensions = os.listdir('%s/.local/share/cinnamon/extensions' % home)
         extensions.sort()
         for extension in extensions:
-            if os.path.exists("%s/.local/share/cinnamon/extensions/%s/metadata.json" % (home, extension)):                                
-                print extension                
+            if os.path.exists("%s/.local/share/cinnamon/extensions/%s/metadata.json" % (home, extension)):                                                
+                json_data=open("%s/.local/share/cinnamon/extensions/%s/metadata.json" % (home, extension)).read()
+                data = json.loads(json_data)  
+                extension_uuid = data["uuid"]
+                extension_name = data["name"]                
+                extension_description = data["description"]
+                iter = model.insert_before(None, None)
+                model.set_value(iter, 0, extension_uuid)                
+                model.set_value(iter, 1, extension_name)
+                model.set_value(iter, 2, extension_description)
+                model.set_value(iter, 3, (extension_uuid in self.enabled_extensions))     
                  
         scrolledWindow.add(treeview)                                       
         self.content_box.add(scrolledWindow)
