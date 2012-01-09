@@ -66,8 +66,8 @@ class ThemeViewSidePage (SidePage):
         iconView = Gtk.IconView();        
         model = Gtk.ListStore(str, GdkPixbuf.Pixbuf)
                  
-        img = img = GdkPixbuf.Pixbuf.new_from_file_at_size( "/usr/share/cinnamon/theme/thumbnail.png", 64, 64 )
-        model.append(["Cinnamon", img])
+        img = GdkPixbuf.Pixbuf.new_from_file_at_size( "/usr/share/cinnamon/theme/thumbnail.png", 64, 64 )
+        active_theme_iter = model.append(["Cinnamon", img])
                                                                     
         themes = os.listdir('/usr/share/themes')
         themes.sort()
@@ -77,7 +77,9 @@ class ThemeViewSidePage (SidePage):
                     img = GdkPixbuf.Pixbuf.new_from_file_at_size( "/usr/share/themes/%s/cinnamon/thumbnail.png" % theme, 64, 64 )
                 else:
                     img = img = GdkPixbuf.Pixbuf.new_from_file_at_size( "/usr/share/cinnamon/theme/thumbnail-generic.png", 64, 64 )
-                model.append([theme, img])
+                theme_iter = model.append([theme, img])
+                if theme==current_theme:
+                    active_theme_iter = theme_iter
                 print theme                
                 
         themes = os.listdir('%s/.themes' % home)
@@ -88,12 +90,16 @@ class ThemeViewSidePage (SidePage):
                     img = GdkPixbuf.Pixbuf.new_from_file_at_size( "%s/.themes/%s/cinnamon/thumbnail.png" % (home, theme), 64, 64 )
                 else:
                     img = img = GdkPixbuf.Pixbuf.new_from_file_at_size( "/usr/share/cinnamon/theme/thumbnail-generic.png", 64, 64 )
-                model.append([theme, img])
+                theme_iter = model.append([theme, img])
+                if theme==current_theme:
+                    active_theme_iter = theme_iter
                 print theme                
                                                 
         iconView.set_text_column(0)
         iconView.set_pixbuf_column(1)
-        iconView.set_model(model)                
+        iconView.set_model(model)    
+        print active_theme_iter            
+        iconView.select_path(model.get_path(active_theme_iter))
         iconView.connect("selection_changed", self.apply_theme )
         scrolledWindow.add(iconView)
         self.content_box.add(scrolledWindow)
