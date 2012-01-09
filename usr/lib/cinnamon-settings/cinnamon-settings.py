@@ -9,6 +9,7 @@ try:
     from gi.repository import Gio, Gtk
     from gi.repository import GdkPixbuf 
     import gconf
+    from user import home
 except Exception, detail:
     print detail
     sys.exit(1)
@@ -40,9 +41,65 @@ class SidePage:
         
         # Add our own widgets
         for widget in self.widgets:
-            self.content_box.pack_start(widget, False, False, 2)
-            
+            self.content_box.pack_start(widget, False, False, 2)            
             self.content_box.show_all()
+                      
+class ThemeViewSidePage (SidePage):
+    def __init__(self, name, icon, content_box):   
+        SidePage.__init__(self, name, icon, content_box)        
+        self.icons = []
+                  
+    def build(self):
+        # Clear all the widgets from the content box
+        widgets = self.content_box.get_children()
+        for widget in widgets:
+            self.content_box.remove(widget)
+        
+        # Find the current theme name
+        self.settings = Gio.Settings.new("org.cinnamon.theme")
+        current_theme = self.settings.get_string("name")
+        
+        # Add our own widgets
+        scrolledWindow = Gtk.ScrolledWindow()                
+        
+        iconView = Gtk.IconView();        
+        model = Gtk.ListStore(str, GdkPixbuf.Pixbuf)
+                 
+        img = Gtk.IconTheme.get_default().load_icon("preferences-desktop", 36, 0)
+        model.append(["Cinnamon", img])
+                                                                    
+        themes = os.listdir('/usr/share/themes')
+        for theme in themes:
+            if os.path.exists("/usr/share/themes/%s/cinnamon/cinnamon.css" % theme):
+                img = Gtk.IconTheme.get_default().load_icon("preferences-desktop", 36, 0)
+                model.append([theme, img])
+                print theme                
+                
+        themes = os.listdir('%s/.themes' % home)
+        for theme in themes:
+            if os.path.exists("/usr/share/themes/%s/cinnamon/cinnamon.css" % theme):
+                img = Gtk.IconTheme.get_default().load_icon("preferences-desktop", 36, 0)
+                model.append([theme, img])
+                print theme                
+                                                
+        iconView.set_text_column(0)
+        iconView.set_pixbuf_column(1)
+        iconView.set_model(model)                
+        iconView.connect("selection_changed", self.apply_theme )
+        scrolledWindow.add(iconView)
+        self.content_box.add(scrolledWindow)
+        self.content_box.show_all()
+        
+    def apply_theme(self, iconView):
+        selected_items = iconView.get_selected_items()
+        if len(selected_items) > 0:
+            path = selected_items[0];  
+            model = iconView.get_model()          
+            iterator = model.get_iter(path)
+            theme_name = model.get_value(iterator, 0)
+            if theme_name == "Cinnamon":
+                theme_name = ""            
+            self.settings.set_string("name", theme_name)
 
 class GConfCheckButton(Gtk.CheckButton):    
     def __init__(self, label, key):        
@@ -118,7 +175,6 @@ class MainWindow:
         
         self.window.connect("destroy", Gtk.main_quit)
 
-
         self.sidePages = []
                                
         sidePage = SidePage(_("Terminal"), "terminal", self.content_box)
@@ -135,6 +191,8 @@ class MainWindow:
         sidePage.add_widget(GSettingsCheckButton(_("Overview icon visible"), "org.cinnamon", "overview-corner-visible")) 
         sidePage.add_widget(GSettingsCheckButton(_("Overview hot corner enabled"), "org.cinnamon", "overview-corner-hover")) 
         
+        sidePage = ThemeViewSidePage(_("Theme"), "preferences-desktop", self.content_box)
+        self.sidePages.append(sidePage);
                                 
         # create the backing store for the side nav-view.                    
         theme = Gtk.IconTheme.get_default()
@@ -142,8 +200,7 @@ class MainWindow:
         for sidePage in self.sidePages:
             img = theme.load_icon(sidePage.icon, 36, 0)                        
             self.store.append([sidePage.name, img, sidePage])     
-                    
-        
+                      
         # set up the side view - navigation.
         self.side_view.set_text_column(0)
         self.side_view.set_pixbuf_column(1)
@@ -157,8 +214,7 @@ class MainWindow:
         self.window.connect("destroy", Gtk.main_quit)
         self.button_cancel.connect("clicked", Gtk.main_quit)                                    
         self.window.show()
-
-  
+                
                 
 if __name__ == "__main__":
     MainWindow()
