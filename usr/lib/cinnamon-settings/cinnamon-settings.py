@@ -9,6 +9,7 @@ try:
     from gi.repository import Gio, Gtk
     from gi.repository import GdkPixbuf 
     import gconf
+    import json
     from user import home
 except Exception, detail:
     print detail
@@ -82,8 +83,11 @@ class ThemeViewSidePage (SidePage):
         themes = os.listdir('%s/.themes' % home)
         themes.sort()
         for theme in themes:
-            if os.path.exists("/usr/share/themes/%s/cinnamon/cinnamon.css" % theme):
-                img = Gtk.IconTheme.get_default().load_icon("preferences-desktop", 64, 0)
+            if os.path.exists("%s/.themes/%s/cinnamon/cinnamon.css" % (home, theme)):
+                if os.path.exists("%s/.themes/%s/cinnamon/thumbnail.png" % (home, theme)):
+                    img = GdkPixbuf.Pixbuf.new_from_file_at_size( "%s/.themes/%s/cinnamon/thumbnail.png" % (home, theme), 64, 64 )
+                else:
+                    img = img = GdkPixbuf.Pixbuf.new_from_file_at_size( "/usr/share/cinnamon/theme/thumbnail-generic.png", 64, 64 )
                 model.append([theme, img])
                 print theme                
                                                 
@@ -105,6 +109,103 @@ class ThemeViewSidePage (SidePage):
             if theme_name == "Cinnamon":
                 theme_name = ""            
             self.settings.set_string("name", theme_name)
+            
+class ExtensionViewSidePage (SidePage):
+    def __init__(self, name, icon, content_box):   
+        SidePage.__init__(self, name, icon, content_box)        
+        self.icons = []
+                  
+    def build(self):
+        # Clear all the widgets from the content box
+        widgets = self.content_box.get_children()
+        for widget in widgets:
+            self.content_box.remove(widget)
+        
+        scrolledWindow = Gtk.ScrolledWindow()    
+        treeview = Gtk.TreeView()
+                
+        cr = Gtk.CellRendererToggle()
+        cr.connect("toggled", self.toggled, treeview)
+        column1 = Gtk.TreeViewColumn(_("Enable"), cr)
+        column1.set_cell_data_func(cr, self.celldatafunction_checkbox)
+        column1.set_sort_column_id(4)
+        column1.set_resizable(True)
+
+        column2 = Gtk.TreeViewColumn(_("UUID"), Gtk.CellRendererText(), text=0)
+        column2.set_sort_column_id(1)
+        column2.set_resizable(True)
+
+        column3 = Gtk.TreeViewColumn(_("Name"), Gtk.CellRendererPixbuf(), text=1)
+        column3.set_sort_column_id(2)
+        column3.set_resizable(True)
+
+        column4 = Gtk.TreeViewColumn(_("Description"), Gtk.CellRendererText(), text=2)
+        column4.set_sort_column_id(3)
+        column4.set_resizable(True)
+        
+        treeview.append_column(column1)
+        treeview.append_column(column2)
+        treeview.append_column(column3)
+        treeview.append_column(column4)
+        treeview.set_headers_clickable(True)
+        treeview.set_reorderable(False)
+            
+        model = Gtk.TreeStore(str, str, str, bool)
+        #model.set_sort_column_id( 1, Gtk.SORT_ASCENDING )
+        treeview.set_model(model)
+                                
+        # Find the enabled extensions
+        self.settings = Gio.Settings.new("org.cinnamon")
+        self.enabled_extensions = self.settings.get_strv("enabled-extensions")
+                                                                                    
+        extensions = os.listdir('/usr/share/cinnamon/extensions')
+        extensions.sort()
+        for extension in extensions:            
+            if os.path.exists("/usr/share/cinnamon/extensions/%s/metadata.json" % extension):
+                json_data=open("/usr/share/cinnamon/extensions/%s/metadata.json" % extension).read()
+                data = json.loads(json_data)  
+                extension_uuid = data["uuid"]
+                extension_name = data["name"]
+                print extension_name
+                extension_description = data["description"]
+                iter = model.insert_before(None, None)
+                model.set_value(iter, 0, extension_uuid)                
+                model.set_value(iter, 1, extension_name)
+                model.set_value(iter, 2, extension_description)
+                model.set_value(iter, 3, (extension_uuid in self.enabled_extensions))
+                
+        extensions = os.listdir('%s/.local/share/cinnamon/extensions' % home)
+        extensions.sort()
+        for extension in extensions:
+            if os.path.exists("%s/.local/share/cinnamon/extensions/%s/metadata.json" % (home, extension)):                                
+                print extension                
+                 
+        scrolledWindow.add(treeview)                                       
+        self.content_box.add(scrolledWindow)
+        self.content_box.show_all()     
+        
+    def toggled(self, renderer, path, treeview):
+        model = treeview.get_model()
+        iter = model.get_iter(path)
+        if (iter != None):
+            uuid = model.get_value(iter, 0)
+            checked = model.get_value(iter, 3)
+            if (checked):
+                model.set_value(iter, 3, False)
+                self.enabled_extensions.remove(uuid)
+            else:
+                model.set_value(iter, 3, True) 
+                self.enabled_extensions.append(uuid)
+            
+            self.settings.set_strv("enabled-extensions", self.enabled_extensions)
+                
+    def celldatafunction_checkbox(self, column, cell, model, iter, data=None):
+        cell.set_property("activatable", True)
+        checked = model.get_value(iter, 3)
+        if (checked):
+            cell.set_property("active", True)
+        else:
+            cell.set_property("active", False)
 
 class GConfCheckButton(Gtk.CheckButton):    
     def __init__(self, label, key):        
@@ -194,6 +295,9 @@ class MainWindow:
         sidePage.add_widget(GSettingsCheckButton(_("Overview hot corner enabled"), "org.cinnamon", "overview-corner-hover")) 
         
         sidePage = ThemeViewSidePage(_("Theme"), "preferences-desktop-theme", self.content_box)
+        self.sidePages.append(sidePage);
+        
+        sidePage = ExtensionViewSidePage(_("Extensions"), "preferences-desktop", self.content_box)
         self.sidePages.append(sidePage);
         
         sidePage = SidePage(_("Terminal"), "terminal", self.content_box)
