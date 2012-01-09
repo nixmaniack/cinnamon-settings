@@ -292,12 +292,12 @@ class MainWindow:
         self.sidePages = []
                                
                        
-        sidePage = SidePage(_("Panel"), "preferences-desktop", self.content_box)
+        sidePage = SidePage(_("Panel"), "gnome-panel-window-list", self.content_box)
         self.sidePages.append(sidePage);
         sidePage.add_widget(GSettingsEntry(_("Menu text"), "org.cinnamon", "menu-text")) 
         sidePage.add_widget(GSettingsCheckButton(_("Auto-hide panel"), "org.cinnamon", "panel-autohide")) 
         
-        sidePage = SidePage(_("Hot Corner"), "preferences-desktop", self.content_box)
+        sidePage = SidePage(_("Hot Corner"), "preferences-system-windows", self.content_box)
         self.sidePages.append(sidePage);
         sidePage.add_widget(GSettingsCheckButton(_("Overview icon visible"), "org.cinnamon", "overview-corner-visible")) 
         sidePage.add_widget(GSettingsCheckButton(_("Overview hot corner enabled"), "org.cinnamon", "overview-corner-hover")) 
