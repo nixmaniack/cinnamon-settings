@@ -135,7 +135,7 @@ class ExtensionViewSidePage (SidePage):
         column2.set_sort_column_id(1)
         column2.set_resizable(True)
 
-        column3 = Gtk.TreeViewColumn(_("Name"), Gtk.CellRendererPixbuf(), text=1)
+        column3 = Gtk.TreeViewColumn(_("Name"), Gtk.CellRendererText(), text=1)
         column3.set_sort_column_id(2)
         column3.set_resizable(True)
 
@@ -165,8 +165,7 @@ class ExtensionViewSidePage (SidePage):
                 json_data=open("/usr/share/cinnamon/extensions/%s/metadata.json" % extension).read()
                 data = json.loads(json_data)  
                 extension_uuid = data["uuid"]
-                extension_name = data["name"]
-                print extension_name
+                extension_name = data["name"]                
                 extension_description = data["description"]
                 iter = model.insert_before(None, None)
                 model.set_value(iter, 0, extension_uuid)                
@@ -294,15 +293,15 @@ class MainWindow:
         sidePage.add_widget(GSettingsCheckButton(_("Overview icon visible"), "org.cinnamon", "overview-corner-visible")) 
         sidePage.add_widget(GSettingsCheckButton(_("Overview hot corner enabled"), "org.cinnamon", "overview-corner-hover")) 
         
-        sidePage = ThemeViewSidePage(_("Theme"), "preferences-desktop-theme", self.content_box)
+        sidePage = ThemeViewSidePage(_("Themes"), "preferences-desktop-theme", self.content_box)
         self.sidePages.append(sidePage);
         
-        sidePage = ExtensionViewSidePage(_("Extensions"), "preferences-desktop", self.content_box)
+        sidePage = ExtensionViewSidePage(_("Extensions"), "emblem-system", self.content_box)
         self.sidePages.append(sidePage);
         
-        sidePage = SidePage(_("Terminal"), "terminal", self.content_box)
-        self.sidePages.append(sidePage);
-        sidePage.add_widget(GConfCheckButton(_("Show fortune cookies"), "/desktop/linuxmint/terminal/show_fortunes"))
+        #sidePage = SidePage(_("Terminal"), "terminal", self.content_box)
+        #self.sidePages.append(sidePage);
+        #sidePage.add_widget(GConfCheckButton(_("Show fortune cookies"), "/desktop/linuxmint/terminal/show_fortunes"))
         
                                 
         # create the backing store for the side nav-view.                    
