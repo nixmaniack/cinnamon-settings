@@ -93,7 +93,7 @@ class ThemeViewSidePage (SidePage):
                     if os.path.exists("%s/%s/cinnamon/thumbnail.png" % (directory, theme)):
                         img = GdkPixbuf.Pixbuf.new_from_file_at_size( "%s/%s/cinnamon/thumbnail.png" % (directory, theme), 64, 64 )
                     else:
-                        img = img = GdkPixbuf.Pixbuf.new_from_file_at_size( "/usr/share/cinnamon/theme/thumbnail-generic.png", 64, 64 )
+                        img = GdkPixbuf.Pixbuf.new_from_file_at_size( "/usr/share/cinnamon/theme/thumbnail-generic.png", 64, 64 )
                     theme_iter = self.model.append([theme, img])
                     if theme==self.current_theme:
                         self.active_theme_iter = theme_iter
@@ -283,6 +283,13 @@ class MainWindow:
         self.sidePages.append(sidePage);
         sidePage.add_widget(GSettingsEntry(_("Menu text"), "org.cinnamon", "menu-text")) 
         sidePage.add_widget(GSettingsCheckButton(_("Auto-hide panel"), "org.cinnamon", "panel-autohide")) 
+        
+        sidePage = SidePage(_("Calendar"), "gnome-set-time", self.content_box)
+        self.sidePages.append(sidePage);        
+        sidePage.add_widget(GSettingsCheckButton(_("Show week dates in calendar"), "org.cinnamon.calendar", "show-weekdate"))         
+        sidePage.add_widget(GSettingsEntry(_("Date format for the panel"), "org.cinnamon.calendar", "date-format"))                                 
+        sidePage.add_widget(GSettingsEntry(_("Date format inside the date applet"), "org.cinnamon.calendar", "date-format-full"))                                 
+        sidePage.add_widget(Gtk.LinkButton.new_with_label("http://www.foragoodstrftime.com/", _("Generate your own date formats"))) 
         
         sidePage = SidePage(_("Hot Corner"), "preferences-system-windows", self.content_box)
         self.sidePages.append(sidePage);
