@@ -68,9 +68,8 @@ class ThemeViewSidePage (SidePage):
                  
         img = GdkPixbuf.Pixbuf.new_from_file_at_size( "/usr/share/cinnamon/theme/thumbnail.png", 64, 64 )
 
-        active_theme_iter = self.model.append(["Cinnamon", img])
-             
-        self.active_theme_iter = None        
+        self.active_theme_iter = self.model.append(["Cinnamon", img])
+                     
         self.load_themes_in('/usr/share/themes')
         self.load_themes_in('%s/.themes' % home)
         
