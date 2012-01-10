@@ -279,27 +279,27 @@ class MainWindow:
         self.sidePages = []
                                
                        
-        sidePage = SidePage(_("Panel"), "gnome-panel-window-list", self.content_box)
+        sidePage = SidePage(_("Panel"), "panel.svg", self.content_box)
         self.sidePages.append(sidePage);
         sidePage.add_widget(GSettingsEntry(_("Menu text"), "org.cinnamon", "menu-text")) 
         sidePage.add_widget(GSettingsCheckButton(_("Auto-hide panel"), "org.cinnamon", "panel-autohide")) 
         
-        sidePage = SidePage(_("Calendar"), "gnome-set-time", self.content_box)
+        sidePage = SidePage(_("Calendar"), "clock.svg", self.content_box)
         self.sidePages.append(sidePage);        
         sidePage.add_widget(GSettingsCheckButton(_("Show week dates in calendar"), "org.cinnamon.calendar", "show-weekdate"))         
         sidePage.add_widget(GSettingsEntry(_("Date format for the panel"), "org.cinnamon.calendar", "date-format"))                                 
         sidePage.add_widget(GSettingsEntry(_("Date format inside the date applet"), "org.cinnamon.calendar", "date-format-full"))                                 
         sidePage.add_widget(Gtk.LinkButton.new_with_label("http://www.foragoodstrftime.com/", _("Generate your own date formats"))) 
         
-        sidePage = SidePage(_("Hot Corner"), "preferences-system-windows", self.content_box)
+        sidePage = SidePage(_("Overview"), "overview.svg", self.content_box)
         self.sidePages.append(sidePage);
         sidePage.add_widget(GSettingsCheckButton(_("Overview icon visible"), "org.cinnamon", "overview-corner-visible")) 
         sidePage.add_widget(GSettingsCheckButton(_("Overview hot corner enabled"), "org.cinnamon", "overview-corner-hover")) 
         
-        sidePage = ThemeViewSidePage(_("Themes"), "preferences-desktop-theme", self.content_box)
+        sidePage = ThemeViewSidePage(_("Themes"), "themes.svg", self.content_box)
         self.sidePages.append(sidePage);
         
-        sidePage = ExtensionViewSidePage(_("Extensions"), "emblem-system", self.content_box)
+        sidePage = ExtensionViewSidePage(_("Extensions"), "extensions.svg", self.content_box)
         self.sidePages.append(sidePage);
         
         #sidePage = SidePage(_("Terminal"), "terminal", self.content_box)
@@ -311,7 +311,7 @@ class MainWindow:
         theme = Gtk.IconTheme.get_default()
         self.store = Gtk.ListStore(str, GdkPixbuf.Pixbuf, object)
         for sidePage in self.sidePages:
-            img = theme.load_icon(sidePage.icon, 36, 0)                        
+            img = GdkPixbuf.Pixbuf.new_from_file_at_size( "/usr/lib/cinnamon-settings/data/icons/%s" % sidePage.icon, 36, 36)
             self.store.append([sidePage.name, img, sidePage])     
                       
         # set up the side view - navigation.
