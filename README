@@ -1,0 +1,14 @@
+Description:
+------------
+
+This is the main configuration tool for Cinnamon.
+
+
+Resources for developers:
+-------------------------
+
+GTK+ 3 Reference: 
+    http://developer.gnome.org/gtk3/3.2/
+
+The Python GTK+ 3 Tutorial: 
+    http://python-gtk-3-tutorial.readthedocs.org/en/latest/index.html
