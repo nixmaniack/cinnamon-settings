@@ -278,8 +278,7 @@ class MainWindow:
         self.window.connect("destroy", Gtk.main_quit)
 
         self.sidePages = []
-                               
-                       
+                                                      
         sidePage = SidePage(_("Panel"), "panel.svg", self.content_box)
         self.sidePages.append(sidePage);
         sidePage.add_widget(GSettingsEntry(_("Menu text"), "org.cinnamon", "menu-text")) 
@@ -318,10 +317,13 @@ class MainWindow:
         # set up the side view - navigation.
         self.side_view.set_text_column(0)
         self.side_view.set_pixbuf_column(1)
-        self.side_view.set_model(self.store)
-        #path = self.side_view.get_path_at_pos(0,0)
-        #self.side_view.select_path(path)
+        self.side_view.set_model(self.store)        
         self.side_view.connect("selection_changed", self.side_view_nav )
+
+        # Select the first sidePage
+        first_page_iter = self.store.get_iter_first()        
+        path = self.store.get_path(first_page_iter)
+        self.side_view.select_path(path)
 
         # set up larger components.
         self.window.set_title(_("Desktop Settings"))
