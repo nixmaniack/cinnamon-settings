@@ -67,6 +67,7 @@ class ThemeViewSidePage (SidePage):
         self.model = Gtk.ListStore(str, GdkPixbuf.Pixbuf)
                  
         img = GdkPixbuf.Pixbuf.new_from_file_at_size( "/usr/share/cinnamon/theme/thumbnail.png", 64, 64 )
+
         active_theme_iter = self.model.append(["Cinnamon", img])
              
         self.active_theme_iter = None        
@@ -84,7 +85,7 @@ class ThemeViewSidePage (SidePage):
         self.content_box.show_all()
     
     def load_themes_in(self, directory):
-        if os.path.exists(directory):
+        if os.path.exists(directory) and os.path.isdir(directory):
             themes = os.listdir(directory)
             themes.sort()
             for theme in themes:
@@ -163,7 +164,7 @@ class ExtensionViewSidePage (SidePage):
         self.content_box.show_all()   
         
     def load_extensions_in(self, directory):
-        if os.path.exists(directory):
+        if os.path.exists(directory) and os.path.isdir(directory):
             extensions = os.listdir(directory)
             extensions.sort()
             for extension in extensions:            
