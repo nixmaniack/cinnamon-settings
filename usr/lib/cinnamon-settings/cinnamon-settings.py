@@ -311,7 +311,7 @@ class MainWindow:
         theme = Gtk.IconTheme.get_default()
         self.store = Gtk.ListStore(str, GdkPixbuf.Pixbuf, object)
         for sidePage in self.sidePages:
-            img = GdkPixbuf.Pixbuf.new_from_file_at_size( "/usr/lib/cinnamon-settings/data/icons/%s" % sidePage.icon, 36, 36)
+            img = GdkPixbuf.Pixbuf.new_from_file_at_size( "/usr/lib/cinnamon-settings/data/icons/%s" % sidePage.icon, 48, 48)
             self.store.append([sidePage.name, img, sidePage])     
                       
         # set up the side view - navigation.
