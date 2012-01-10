@@ -237,9 +237,11 @@ class GSettingsEntry(Gtk.HBox):
     def __init__(self, label, schema, key):        
         self.key = key
         super(GSettingsEntry, self).__init__()
-        self.label = Gtk.Label(label)
+        self.label = Gtk.Label(label)       
         self.content_widget = Gtk.Entry()
-        self.add(self.label)
+        self.pack_start(self.label, False, False, 10)
+        self.label.set_halign(Gtk.Align.START)
+        self.label.set_justify(Gtk.Justification.LEFT)
         self.add(self.content_widget)     
         self.settings = Gio.Settings.new(schema)        
         self.content_widget.set_text(self.settings.get_string(self.key))
