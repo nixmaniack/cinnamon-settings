@@ -58,60 +58,51 @@ class ThemeViewSidePage (SidePage):
         
         # Find the current theme name
         self.settings = Gio.Settings.new("org.cinnamon.theme")
-        current_theme = self.settings.get_string("name")
+        self.current_theme = self.settings.get_string("name")
         
         # Add our own widgets
         scrolledWindow = Gtk.ScrolledWindow()                
         
         iconView = Gtk.IconView();        
-        model = Gtk.ListStore(str, GdkPixbuf.Pixbuf)
+        self.model = Gtk.ListStore(str, GdkPixbuf.Pixbuf)
                  
         img = GdkPixbuf.Pixbuf.new_from_file_at_size( "/usr/share/cinnamon/theme/thumbnail.png", 64, 64 )
-        active_theme_iter = model.append(["Cinnamon", img])
-                                                                    
-        themes = os.listdir('/usr/share/themes')
-        themes.sort()
-        for theme in themes:
-            if os.path.exists("/usr/share/themes/%s/cinnamon/cinnamon.css" % theme):
-                if os.path.exists("/usr/share/themes/%s/cinnamon/thumbnail.png" % theme):
-                    img = GdkPixbuf.Pixbuf.new_from_file_at_size( "/usr/share/themes/%s/cinnamon/thumbnail.png" % theme, 64, 64 )
-                else:
-                    img = img = GdkPixbuf.Pixbuf.new_from_file_at_size( "/usr/share/cinnamon/theme/thumbnail-generic.png", 64, 64 )
-                theme_iter = model.append([theme, img])
-                if theme==current_theme:
-                    active_theme_iter = theme_iter
-                print theme                
-                
-        themes = os.listdir('%s/.themes' % home)
-        themes.sort()
-        for theme in themes:
-            if os.path.exists("%s/.themes/%s/cinnamon/cinnamon.css" % (home, theme)):
-                if os.path.exists("%s/.themes/%s/cinnamon/thumbnail.png" % (home, theme)):
-                    img = GdkPixbuf.Pixbuf.new_from_file_at_size( "%s/.themes/%s/cinnamon/thumbnail.png" % (home, theme), 64, 64 )
-                else:
-                    img = img = GdkPixbuf.Pixbuf.new_from_file_at_size( "/usr/share/cinnamon/theme/thumbnail-generic.png", 64, 64 )
-                theme_iter = model.append([theme, img])
-                if theme==current_theme:
-                    active_theme_iter = theme_iter
-                print theme                
-                                                
+        active_theme_iter = self.model.append(["Cinnamon", img])
+             
+        self.active_theme_iter = None        
+        self.load_themes_in('/usr/share/themes')
+        self.load_themes_in('%s/.themes' % home)
+        
         iconView.set_text_column(0)
         iconView.set_pixbuf_column(1)
-        iconView.set_model(model)    
-        print active_theme_iter            
-        iconView.select_path(model.get_path(active_theme_iter))
+        iconView.set_model(self.model)    
+        if (self.active_theme_iter is not None):
+            iconView.select_path(self.model.get_path(self.active_theme_iter))
         iconView.connect("selection_changed", self.apply_theme )
         scrolledWindow.add(iconView)
         self.content_box.add(scrolledWindow)
         self.content_box.show_all()
+    
+    def load_themes_in(self, directory):
+        if os.path.exists(directory):
+            themes = os.listdir(directory)
+            themes.sort()
+            for theme in themes:
+                if os.path.exists("%s/%s/cinnamon/cinnamon.css" % (directory, theme)):
+                    if os.path.exists("%s/%s/cinnamon/thumbnail.png" % (directory, theme)):
+                        img = GdkPixbuf.Pixbuf.new_from_file_at_size( "%s/%s/cinnamon/thumbnail.png" % (directory, theme), 64, 64 )
+                    else:
+                        img = img = GdkPixbuf.Pixbuf.new_from_file_at_size( "/usr/share/cinnamon/theme/thumbnail-generic.png", 64, 64 )
+                    theme_iter = self.model.append([theme, img])
+                    if theme==self.current_theme:
+                        self.active_theme_iter = theme_iter
         
     def apply_theme(self, iconView):
         selected_items = iconView.get_selected_items()
         if len(selected_items) > 0:
-            path = selected_items[0];  
-            model = iconView.get_model()          
-            iterator = model.get_iter(path)
-            theme_name = model.get_value(iterator, 0)
+            path = selected_items[0];                  
+            iterator = self.model.get_iter(path)
+            theme_name = self.model.get_value(iterator, 0)
             if theme_name == "Cinnamon":
                 theme_name = ""            
             self.settings.set_string("name", theme_name)
@@ -156,59 +147,48 @@ class ExtensionViewSidePage (SidePage):
         treeview.set_headers_clickable(True)
         treeview.set_reorderable(False)
             
-        model = Gtk.TreeStore(str, str, str, bool)
-        #model.set_sort_column_id( 1, Gtk.SORT_ASCENDING )
-        treeview.set_model(model)
+        self.model = Gtk.TreeStore(str, str, str, bool)
+        #self.model.set_sort_column_id( 1, Gtk.SORT_ASCENDING )
+        treeview.set_model(self.model)
                                 
         # Find the enabled extensions
         self.settings = Gio.Settings.new("org.cinnamon")
         self.enabled_extensions = self.settings.get_strv("enabled-extensions")
-                                                                                    
-        extensions = os.listdir('/usr/share/cinnamon/extensions')
-        extensions.sort()
-        for extension in extensions:            
-            if os.path.exists("/usr/share/cinnamon/extensions/%s/metadata.json" % extension):
-                json_data=open("/usr/share/cinnamon/extensions/%s/metadata.json" % extension).read()
-                data = json.loads(json_data)  
-                extension_uuid = data["uuid"]
-                extension_name = data["name"]                
-                extension_description = data["description"]
-                iter = model.insert_before(None, None)
-                model.set_value(iter, 0, extension_uuid)                
-                model.set_value(iter, 1, extension_name)
-                model.set_value(iter, 2, extension_description)
-                model.set_value(iter, 3, (extension_uuid in self.enabled_extensions))
-                
-        extensions = os.listdir('%s/.local/share/cinnamon/extensions' % home)
-        extensions.sort()
-        for extension in extensions:
-            if os.path.exists("%s/.local/share/cinnamon/extensions/%s/metadata.json" % (home, extension)):                                                
-                json_data=open("%s/.local/share/cinnamon/extensions/%s/metadata.json" % (home, extension)).read()
-                data = json.loads(json_data)  
-                extension_uuid = data["uuid"]
-                extension_name = data["name"]                
-                extension_description = data["description"]
-                iter = model.insert_before(None, None)
-                model.set_value(iter, 0, extension_uuid)                
-                model.set_value(iter, 1, extension_name)
-                model.set_value(iter, 2, extension_description)
-                model.set_value(iter, 3, (extension_uuid in self.enabled_extensions))     
-                 
+                         
+        self.load_extensions_in('/usr/share/cinnamon/extensions')                                                                          
+        self.load_extensions_in('%s/.local/share/cinnamon/extensions' % home)
+        
         scrolledWindow.add(treeview)                                       
         self.content_box.add(scrolledWindow)
-        self.content_box.show_all()     
+        self.content_box.show_all()   
         
-    def toggled(self, renderer, path, treeview):
-        model = treeview.get_model()
-        iter = model.get_iter(path)
+    def load_extensions_in(self, directory):
+        if os.path.exists(directory):
+            extensions = os.listdir(directory)
+            extensions.sort()
+            for extension in extensions:            
+                if os.path.exists("%s/%s/metadata.json" % (directory, extension)):
+                    json_data=open("%s/%s/metadata.json" % (directory, extension)).read()
+                    data = json.loads(json_data)  
+                    extension_uuid = data["uuid"]
+                    extension_name = data["name"]                
+                    extension_description = data["description"]
+                    iter = self.model.insert_before(None, None)
+                    self.model.set_value(iter, 0, extension_uuid)                
+                    self.model.set_value(iter, 1, extension_name)
+                    self.model.set_value(iter, 2, extension_description)
+                    self.model.set_value(iter, 3, (extension_uuid in self.enabled_extensions))
+        
+    def toggled(self, renderer, path, treeview):        
+        iter = self.model.get_iter(path)
         if (iter != None):
-            uuid = model.get_value(iter, 0)
-            checked = model.get_value(iter, 3)
+            uuid = self.model.get_value(iter, 0)
+            checked = self.model.get_value(iter, 3)
             if (checked):
-                model.set_value(iter, 3, False)
+                self.model.set_value(iter, 3, False)
                 self.enabled_extensions.remove(uuid)
             else:
-                model.set_value(iter, 3, True) 
+                self.model.set_value(iter, 3, True) 
                 self.enabled_extensions.append(uuid)
             
             self.settings.set_strv("enabled-extensions", self.enabled_extensions)
