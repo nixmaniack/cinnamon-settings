@@ -326,7 +326,7 @@ class MainWindow:
         self.side_view.select_path(path)
 
         # set up larger components.
-        self.window.set_title(_("Desktop Settings"))
+        self.window.set_title(_("Cinnamon Settings"))       
         self.window.connect("destroy", Gtk.main_quit)
         self.button_cancel.connect("clicked", Gtk.main_quit)                                    
         self.window.show()
