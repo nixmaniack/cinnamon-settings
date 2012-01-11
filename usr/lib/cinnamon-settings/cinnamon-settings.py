@@ -239,9 +239,7 @@ class GSettingsEntry(Gtk.HBox):
         super(GSettingsEntry, self).__init__()
         self.label = Gtk.Label(label)       
         self.content_widget = Gtk.Entry()
-        self.pack_start(self.label, False, False, 10)
-        self.label.set_halign(Gtk.Align.START)
-        self.label.set_justify(Gtk.Justification.LEFT)
+        self.pack_start(self.label, False, False, 10)        
         self.add(self.content_widget)     
         self.settings = Gio.Settings.new(schema)        
         self.content_widget.set_text(self.settings.get_string(self.key))
@@ -253,7 +251,44 @@ class GSettingsEntry(Gtk.HBox):
         
     def on_my_value_changed(self, widget):
         self.settings.set_string(self.key, self.content_widget.get_text())
+
+class GSettingsComboBox(Gtk.HBox):    
+    def __init__(self, label, schema, key, options):        
+        self.key = key
+        super(GSettingsComboBox, self).__init__()
+        self.settings = Gio.Settings.new(schema)        
+        self.value = self.settings.get_string(self.key)
+                      
+        self.label = Gtk.Label(label)       
+        self.model = Gtk.ListStore(str, str)
+        selected = None
+        for option in options:
+            iter = self.model.insert_before(None, None)
+            self.model.set_value(iter, 0, option[0])                
+            self.model.set_value(iter, 1, option[1])                        
+            if (option[0] == self.value):
+                selected = iter
+                                
+        self.content_widget = Gtk.ComboBox.new_with_model(self.model)   
+        renderer_text = Gtk.CellRendererText()
+        self.content_widget.pack_start(renderer_text, True)
+        self.content_widget.add_attribute(renderer_text, "text", 1)     
         
+        if selected is not None:
+            self.content_widget.set_active_iter(selected)
+        
+        self.pack_start(self.label, False, False, 10)                
+        self.pack_start(self.content_widget, False, False, 10)                     
+        self.content_widget.connect('changed', self.on_my_value_changed)
+        self.content_widget.show_all()
+                            
+        
+    def on_my_value_changed(self, widget):
+        tree_iter = widget.get_active_iter()
+        if tree_iter != None:            
+            value = self.model[tree_iter][0]            
+            self.settings.set_string(self.key, value)                       
+
 class MainWindow:
   
     # Change pages
@@ -282,7 +317,13 @@ class MainWindow:
         sidePage = SidePage(_("Panel"), "panel.svg", self.content_box)
         self.sidePages.append(sidePage);
         sidePage.add_widget(GSettingsEntry(_("Menu text"), "org.cinnamon", "menu-text")) 
-        sidePage.add_widget(GSettingsCheckButton(_("Auto-hide panel"), "org.cinnamon", "panel-autohide")) 
+        sidePage.add_widget(GSettingsCheckButton(_("Auto-hide panel"), "org.cinnamon", "panel-autohide"))
+        desktop_layouts = [["traditional", _("Traditional (panel at the bottom)")], ["flipped", _("Flipped (panel at the top)")]]        
+        desktop_layouts_combo = GSettingsComboBox(_("Desktop layout"), "org.cinnamon", "desktop-layout", desktop_layouts)
+        sidePage.add_widget(desktop_layouts_combo) 
+        label = Gtk.Label()
+        label.set_markup("<i><small>%s</small></i>" % _("Note: If you change the layout you will need to restart Cinnamon."))
+        sidePage.add_widget(label) 
         
         sidePage = SidePage(_("Calendar"), "clock.svg", self.content_box)
         self.sidePages.append(sidePage);        
